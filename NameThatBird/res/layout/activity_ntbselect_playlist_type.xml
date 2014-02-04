@@ -6,37 +6,37 @@
     android:paddingLeft="@dimen/activity_horizontal_margin"
     android:paddingRight="@dimen/activity_horizontal_margin"
     android:paddingTop="@dimen/activity_vertical_margin"
-    tools:context=".NTBMain" >
+    tools:context=".NTBSelectPlaylistType" >
 
-    <TextView
-        android:id="@+id/tv_mode"
+	<TextView
+        android:id="@+id/tv_playlist_type"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_alignParentTop="true"
         android:layout_centerHorizontal="true"
         android:layout_marginTop="20dp"
-        android:text="@string/tv_select_mode"
+        android:text="@string/tv_select_playlist_type"
         android:textAppearance="?android:attr/textAppearanceLarge" />
     
     <Button
-        android:id="@+id/b_listen"
-        android:layout_below="@+id/tv_mode"
+        android:id="@+id/b_location"
+        android:layout_below="@+id/tv_playlist_type"
         android:layout_width="100dp"
         android:layout_height="wrap_content"
         android:layout_centerHorizontal="true"
         android:layout_marginTop="30dp"
-        android:text="@string/b_listen"
+        android:text="@string/b_location"
         android:onClick="onButtonClick" />
 
     <Button
-        android:id="@+id/b_record"
-        android:layout_below="@+id/b_listen"
+        android:id="@+id/b_species"
+        android:layout_below="@+id/b_location"
         android:layout_width="100dp"
         android:layout_height="wrap_content"
         android:layout_centerHorizontal="true"
         android:layout_centerVertical="true"
         android:layout_marginTop="20dp"
-        android:text="@string/b_record"
+        android:text="@string/b_species"
         android:onClick="onButtonClick" />
 
 </RelativeLayout>

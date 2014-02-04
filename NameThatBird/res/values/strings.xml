@@ -4,5 +4,22 @@
     <string name="app_name">Name That Bird</string>
     <string name="action_settings">Settings</string>
     <string name="hello_world">Hello world!</string>
+    <string name="b_record">Record</string>
+    <string name="b_listen">Listen</string>
+    <string name="title_activity_ntbselect_playlist_type">NTBSelectPlaylistType</string>
+    <string name="title_activity_ntbselect_playlist">NTBSelectPlaylist</string>
+    <string name="title_section1">Section 1</string>
+    <string name="title_section2">Section 2</string>
+    <string name="title_section3">Section 3</string>
+    <string name="b_location">Location</string>
+    <string name="b_species">Species</string>
+    <string name="tv_select_mode">Select Mode</string>
+    <string name="tv_select_playlist_type">Select Playlist Type</string>
+    <string name="title_activity_ntbselect_location">NTBSelectLocation</string>
+    <string name="title_activity_main">MainActivity</string>
+    <string name="tv_select_location">Select Location</string>
+    <string name="title_activity_ntbselect_lesson">NTBSelectLesson</string>
+    <string name="tv_select_lesson">Select Lesson</string>
+    <string name="title_activity_ntbtake_lesson">NTBTakeLesson</string>
 
 </resources>
