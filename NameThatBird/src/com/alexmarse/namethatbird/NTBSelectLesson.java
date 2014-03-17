@@ -107,7 +107,9 @@ public class NTBSelectLesson extends Activity {
 		Bundle bundle = new Bundle();
 		bundle.putString("playlist_id", playlistId);
 		bundle.putString("playlist_name", playlistName);
-		bundle.putInt("lesson", lesson);
+		bundle.putInt("ntb_lesson", lesson);
+		bundle.putInt("lesson", id);
+		bundle.putInt("num_lessons", lessons.length());
 		intent.putExtra(EXTRA, bundle);
 		
 		// Start the activity

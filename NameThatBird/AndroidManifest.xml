@@ -57,6 +57,14 @@
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value="com.alexmarse.namethatbird.NTBSelectLesson" />
         </activity>
+        <activity
+            android:name="com.alexmarse.namethatbird.NTBLesson"
+            android:label="@string/title_activity_ntblesson"
+            android:parentActivityName="com.alexmarse.namethatbird.NTBSelectLesson" >
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value="com.alexmarse.namethatbird.NTBSelectLesson" />
+        </activity>
     </application>
 
 </manifest>

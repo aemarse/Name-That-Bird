@@ -20,10 +20,6 @@ public class NTBCompleteLesson extends FragmentActivity implements ActionBar.Tab
 	private TabsPagerAdapter mAdapter;
 	private ActionBar actionBar;
 	
-	String playlistId;
-	String playlistName;
-	String lesson;
-	
 	// Tab titles
 	private String[] tabs = {"Practice", "Test"};
 	
@@ -38,12 +34,8 @@ public class NTBCompleteLesson extends FragmentActivity implements ActionBar.Tab
 		Intent intent = getIntent();
 		Log.e("onCreate: ", "NTBCompleteLesson Activity launched!");
 		
+		// Get the bundle of data from the intent
 		Bundle bundle = intent.getBundleExtra(NTBSelectLesson.EXTRA);
-		playlistId = bundle.getString("playlist_id");
-		playlistName = bundle.getString("playlist_name");
-		lesson = bundle.getString("lessons");
-		
-		Log.e("bundle: ", bundle.toString());
 		
 		// Initialization
 		viewPager = (ViewPager)findViewById(R.id.pager);
