@@ -21,5 +21,6 @@
     <string name="title_activity_ntbselect_lesson">NTBSelectLesson</string>
     <string name="tv_select_lesson">Select Lesson</string>
     <string name="title_activity_ntbtake_lesson">NTBTakeLesson</string>
+    <string name="title_activity_ntbcomplete_lesson">NTBCompleteLesson</string>
 
 </resources>

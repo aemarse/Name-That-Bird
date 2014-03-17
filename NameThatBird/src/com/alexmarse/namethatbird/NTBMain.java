@@ -32,10 +32,7 @@ public class NTBMain extends Activity {
     		break;
     	case R.id.b_record:
     		
-    		// Set up the Intent
-    		
-    		
-    		// Start the RecordAudio Activity
+    		// Toast message saying this is future functionality
     		
     		
     		break;

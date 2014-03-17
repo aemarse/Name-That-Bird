@@ -1,7 +1,5 @@
 package com.alexmarse.namethatbird;
 
-import com.alexmarse.namethatbird.R;
-
 import android.annotation.SuppressLint;
 import android.annotation.TargetApi;
 import android.app.Activity;
@@ -15,7 +13,12 @@ import android.view.MenuItem;
 import android.view.View;
 
 public class NTBSelectPlaylistType extends Activity {
-
+	
+	public final static int SPECIES = 1;
+	public final static int LOCATION = 2;
+	
+	public final static String PLAYLIST_TYPE = "";
+	
 	@SuppressLint("NewApi")
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -24,6 +27,7 @@ public class NTBSelectPlaylistType extends Activity {
 		// Show the Up button in the action bar.
 		setupActionBar();
 		
+		// Get the Intent
 		Intent intent = getIntent();
 		Log.e("onCreate", "NTBSelectPlaylist Activity launched!");
 		
@@ -37,21 +41,23 @@ public class NTBSelectPlaylistType extends Activity {
     	case R.id.b_location:
     		
     		// Set up the Intent
-    		Intent intent = new Intent(this, NTBSelectLocation.class);
+    		Intent intent = new Intent(this, NTBSelectPlaylist.class);
+    		
+    		// Add the selected playlist_type id to the intent
+    		intent.putExtra(PLAYLIST_TYPE, LOCATION);
     		
     		// Start the SelectLocation Activity
         	startActivity(intent);
         	
     		break;
+    		
     	case R.id.b_species:
     		
-    		// Set up the Intent
-    		
-    		
-    		// Start the SelectSpecies Activity
+    		// Toast pop up message saying that this is future functionality
     		
     		
     		break;
+    		
     	default:
     		break;
     	}

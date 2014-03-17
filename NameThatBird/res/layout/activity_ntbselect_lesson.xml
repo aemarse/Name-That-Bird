@@ -19,12 +19,16 @@
 
     <GridView
         android:id="@+id/gv_lessons"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
+        android:numColumns="auto_fit"
+        android:gravity="center"
+        android:columnWidth="50dp"
+        android:stretchMode="columnWidth"
+        android:layout_width="fill_parent"
+        android:layout_height="fill_parent"
         android:layout_below="@+id/tv_lesson"
         android:layout_centerHorizontal="true"
         android:layout_marginTop="20dp"
-        android:numColumns="3" >
+        android:textAlignment="center" >
     </GridView>
 
 </RelativeLayout>

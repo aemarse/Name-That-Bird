@@ -5,7 +5,7 @@
     android:versionName="1.0" >
 
     <uses-sdk
-        android:minSdkVersion="11"
+        android:minSdkVersion="14"
         android:targetSdkVersion="17" />
 
     <uses-permission android:name="android.permission.INTERNET" />
@@ -34,7 +34,7 @@
                 android:value="com.alexmarse.namethatbird.NTBMain" />
         </activity>
         <activity
-            android:name="com.alexmarse.namethatbird.NTBSelectLocation"
+            android:name="com.alexmarse.namethatbird.NTBSelectPlaylist"
             android:label="@string/title_activity_ntbselect_location"
             android:parentActivityName="com.alexmarse.namethatbird.NTBSelectPlaylistType" >
             <meta-data
@@ -44,10 +44,18 @@
         <activity
             android:name="com.alexmarse.namethatbird.NTBSelectLesson"
             android:label="@string/title_activity_ntbselect_lesson"
-            android:parentActivityName="com.alexmarse.namethatbird.NTBSelectLocation" >
+            android:parentActivityName="com.alexmarse.namethatbird.NTBSelectPlaylist" >
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value="com.alexmarse.namethatbird.NTBSelectLocation" />
+        </activity>
+        <activity
+            android:name="com.alexmarse.namethatbird.NTBCompleteLesson"
+            android:label="@string/title_activity_ntbcomplete_lesson"
+            android:parentActivityName="com.alexmarse.namethatbird.NTBSelectLesson" >
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value="com.alexmarse.namethatbird.NTBSelectLesson" />
         </activity>
     </application>
 
