@@ -41,6 +41,15 @@ public class NTBMain extends Activity {
     	}
     }
     
+    
+    public void onWaveformButtonClick(View v) {
+    	// Set up the Intent
+		Intent intent = new Intent(this, WaveformDrawer.class);
+		
+		// Start the WaveformDrawer activity
+    	startActivity(intent);
+    }
+    
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {

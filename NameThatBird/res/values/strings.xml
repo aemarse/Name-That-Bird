@@ -23,5 +23,6 @@
     <string name="title_activity_ntbtake_lesson">NTBTakeLesson</string>
     <string name="title_activity_ntbcomplete_lesson">NTBCompleteLesson</string>
     <string name="title_activity_ntblesson">NTBLesson</string>
+    <string name="title_activity_waveform_drawer">WaveformDrawer</string>
 
 </resources>
