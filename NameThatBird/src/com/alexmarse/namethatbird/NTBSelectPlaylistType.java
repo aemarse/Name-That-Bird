@@ -14,8 +14,8 @@ import android.view.View;
 
 public class NTBSelectPlaylistType extends Activity {
 	
-	public final static int SPECIES = 1;
-	public final static int LOCATION = 2;
+	public final static int LOCATION = 1;
+	public final static int SPECIES = 2;
 	
 	public final static String PLAYLIST_TYPE = "";
 	

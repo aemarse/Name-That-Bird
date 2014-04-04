@@ -26,7 +26,8 @@ public class NTBSelectPlaylist extends Activity {
 	ListView listView;
 	ListViewSetup listSetup;
 	
-	public final static String baseUrl = "http://172.31.99.211:8000/api/v1/playlists/?playlist_type=";
+//	public final static String baseUrl = "http://172.31.99.211:8000/api/v1/playlists/?playlist_type=";
+	public final static String baseUrl = "http://namethatbird.org/api/v1/playlists/?playlist_type=";
 	String queryUrl;
 	
 	JSONObject json = null;
