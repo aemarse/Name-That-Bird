@@ -12,15 +12,19 @@ import java.util.concurrent.ExecutionException;
 
 import android.app.Activity;
 import android.content.Intent;
+import android.graphics.Point;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.Display;
 import android.view.Menu;
 
 public class WaveformDrawer extends Activity {
 
 	String datUrl = "http://namethatbird.org/media/131693.dat";
 	WaveformPanel wp;  
+	int screenWidth;
+	int screenHeight;
 	
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -30,6 +34,16 @@ public class WaveformDrawer extends Activity {
 		// Get the Intent
 		Intent intent = getIntent();
 		Log.e("onCreate: ", "WaveformDrawer Activity launched!");
+		
+		// Get the screen dimensions
+		Display display = getWindowManager().getDefaultDisplay();
+		Point size = new Point();
+		display.getSize(size);
+		screenWidth = size.x;
+		screenHeight = size.y;
+//		Log.e("size", "width: " + Integer.toString(screenWidth) + " height: " + Integer.toString(screenHeight));	
+		
+		
 		
 		// Read in a dat file
 		List<Byte> wavData = new ArrayList<Byte>();
@@ -50,7 +64,7 @@ public class WaveformDrawer extends Activity {
 		    byteArray[i++] = (b != null ? b : 0);
 		}
 		
-		float[] floatArray = decode(byteArray);
+		float[] floatArray = decodeBytes(byteArray);
 		
 		float[] normalized = normalizer(floatArray);
 		
@@ -59,7 +73,7 @@ public class WaveformDrawer extends Activity {
 		
 	}
 
-	public static float[] decode (byte byteArray[]) { 
+	public float[] decodeBytes (byte byteArray[]) { 
 		float floatArray[] = new float[byteArray.length/4]; 
 
 		// wrap the source byte array to the byte buffer 
@@ -128,7 +142,7 @@ public class WaveformDrawer extends Activity {
 				URLConnection connection = url.openConnection();
 				connection.connect();
 				int fileLength = connection.getContentLength();
-				Log.e("length of file", Integer.toString(fileLength));
+//				Log.e("length of file", Integer.toString(fileLength));
 				
 				InputStream input = new BufferedInputStream(url.openStream(), 8192);
 				
