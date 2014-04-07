@@ -19,6 +19,9 @@ import android.util.Log;
 import android.view.Display;
 import android.view.Menu;
 
+import com.alexmarse.namethatbird.WaveformPanel;
+
+
 public class WaveformDrawer extends Activity {
 
 	String datUrl = "http://namethatbird.org/media/131693.dat";
