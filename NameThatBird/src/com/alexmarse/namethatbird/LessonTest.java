@@ -21,6 +21,7 @@ import android.content.Intent;
 import android.graphics.Point;
 import android.media.AudioManager;
 import android.media.MediaPlayer;
+import android.media.MediaPlayer.OnBufferingUpdateListener;
 import android.media.MediaPlayer.OnPreparedListener;
 import android.os.AsyncTask;
 import android.os.Bundle;
@@ -123,6 +124,7 @@ public class LessonTest extends Activity implements OnClickListener {
 		// Instantiate MediaPlayer object
 		player = new MediaPlayer();
 		
+		
 		// Get the Intent
 		Intent intent = getIntent();
 		Log.e("onCreate: ", "LessonTest Activity launched!");
@@ -220,8 +222,14 @@ public class LessonTest extends Activity implements OnClickListener {
 			// Get the truth data for the next sound
 			getTruthData();
 			
+			// Reset the onset counter
+			currOnset = 0;
+			
+			// Get the first onset
+			float[] onset = getOnset(normalized);
+			
 			// Set up the waveform drawing surface for the next sound and add it to the current view
-			drawWaveform(normalized);
+			drawWaveform(onset);
 			
 			player.reset();
 			
@@ -252,6 +260,9 @@ public class LessonTest extends Activity implements OnClickListener {
 			// Decrement sound counter
 			currSnd --;
 			
+			// Reset the onset counter
+			currOnset = 0;
+			
 			// Get the sound data for the previous sound
 			getSoundData();
 			
@@ -261,8 +272,11 @@ public class LessonTest extends Activity implements OnClickListener {
 			// Get the truth data for the previous sound
 			getTruthData();
 			
+			// Get the first onset
+			float[] onset = getOnset(normalized);
+			
 			// Set up the waveform drawing surface for the next sound and add it to the current view
-			drawWaveform(normalized);
+			drawWaveform(onset);
 			
 			player.reset();
 			
@@ -306,6 +320,8 @@ public class LessonTest extends Activity implements OnClickListener {
 			}
 		}
 	}
+	
+	
 	
 	// BUTTON HANDLERS
 	@Override
@@ -457,6 +473,7 @@ public class LessonTest extends Activity implements OnClickListener {
 		
 		// Sample marker that the given onset starts on
 		float onsetSec = (float) onsetLocs[currOnset];
+		Log.e("onsetSec", String.valueOf(onsetSec));
 //		float onsetSec = (float) 1.5;
 		int onsetSamp = (int) Math.floor(onsetSec/secsPerPx);
 		Log.e("onsetSamp", String.valueOf(onsetSamp));
@@ -485,12 +502,13 @@ public class LessonTest extends Activity implements OnClickListener {
 	}
 	
 	// Draw waveform
-	public void drawWaveform(float[] normalized) {
-		wp = new WaveformPanel(this, normalized);
+	public void drawWaveform(float[] onset) {
+		wp = new WaveformPanel(this, onset);
 		setContentView(R.layout.activity_lesson_test);
 		frm = (FrameLayout)findViewById(R.id.frameLayout);
 		frm.addView(wp);
-		Log.e("this", this.toString());
+		gestureDetector = new GestureDetector(this, new GestureListener());
+//		Log.e("this", this.toString());
 	}
 	
 	// Download waveform file for current sound from NTB API
