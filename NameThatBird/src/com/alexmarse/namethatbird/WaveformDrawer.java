@@ -17,17 +17,22 @@ import android.os.AsyncTask;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.Display;
+import android.view.GestureDetector;
 import android.view.Menu;
-
-import com.alexmarse.namethatbird.WaveformPanel;
+import android.view.MotionEvent;
+import android.widget.FrameLayout;
 
 
 public class WaveformDrawer extends Activity {
 
 	String datUrl = "http://namethatbird.org/media/131693.dat";
+//	String datUrl = "http://namethatbird.org/media/143593.dat";
 	WaveformPanel wp;  
+	FrameLayout frm;
 	int screenWidth;
 	int screenHeight;
+	
+	GestureDetector gestureDetector;
 	
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -72,7 +77,13 @@ public class WaveformDrawer extends Activity {
 		float[] normalized = normalizer(floatArray);
 		
 		wp = new WaveformPanel(this, normalized);
-		setContentView(wp);
+		setContentView(R.layout.activity_waveform_drawer);
+		frm = (FrameLayout)findViewById(R.id.frameLayout);
+		frm.addView(wp);
+		
+		gestureDetector = new GestureDetector(this, new GestureListener());
+		
+//		setContentView(wp);
 		
 	}
 
@@ -124,6 +135,12 @@ public class WaveformDrawer extends Activity {
 		return normalized;
 	}
 	
+	@Override
+	public boolean onTouchEvent(MotionEvent e) {
+		return gestureDetector.onTouchEvent(e);
+
+	}
+	
 	
 	@Override
 	public boolean onCreateOptionsMenu(Menu menu) {
@@ -165,5 +182,30 @@ public class WaveformDrawer extends Activity {
 			
 		}
 	}
+	
+	private class GestureListener extends GestureDetector.SimpleOnGestureListener {
+
+		@Override
+		public boolean onDown(MotionEvent e) {
+			return true;
+		}
+		
+		@Override
+		public boolean onDoubleTap(MotionEvent e) {
+			float x = e.getX();
+			float y = e.getY();
+			
+			if ((x >= wp.getxMin() && x <= wp.getxMax())
+					&& (y >= wp.getyMin() && y <= wp.getWaveformHeight() * 2)) {
+				Log.e("double tap: ", "x: " + String.valueOf(x) + " y: "
+						+ String.valueOf(y));
+				return true;
+			} else {
+				return false;
+			}
+		
+		}
+		
+		}
 
 }

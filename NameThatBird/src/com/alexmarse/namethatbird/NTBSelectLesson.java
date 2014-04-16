@@ -92,7 +92,7 @@ public class NTBSelectLesson extends Activity {
 	public void launchIntent(int id) {
 		
 		// Set up the Intent
-		Intent intent = new Intent(this, NTBCompleteLesson.class);
+		Intent intent = new Intent(this, LessonTest.class);
 		
 		// Get the lesson number of the item that was clicked
 		int lesson = 0;

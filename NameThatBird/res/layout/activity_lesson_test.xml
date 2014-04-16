@@ -6,8 +6,8 @@
     android:paddingLeft="@dimen/activity_horizontal_margin"
     android:paddingRight="@dimen/activity_horizontal_margin"
     android:paddingTop="@dimen/activity_vertical_margin"
-    tools:context=".WaveformDrawer" >
-    
+    tools:context=".LessonTest" >
+
     <FrameLayout
         android:id="@+id/frameLayout"
         android:layout_width="fill_parent"
@@ -25,29 +25,29 @@
             android:id="@+id/b_previous"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:src="@drawable/ic_action_previous"
-            android:onClick="onClickPlayer" />
+            android:onClick="onClickPrev"
+            android:src="@drawable/ic_action_previous" />
 
         <ImageButton
             android:id="@+id/b_pause"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:onClick="onClickPlayer"
+            android:onClick="onClickPause"
             android:src="@drawable/ic_action_pause" />
 
         <ImageButton
             android:id="@+id/b_play"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:onClick="onClickPlayer"
-            android:src="@drawable/ic_action_next" />
+            android:onClick="onClickPlay"
+            android:src="@drawable/ic_action_play" />
 
         <ImageButton
             android:id="@+id/b_next"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:onClick="onClickPlayer"
-            android:src="@drawable/ic_action_play" />
+            android:onClick="onClickNext"
+            android:src="@drawable/ic_action_next" />
         
     </LinearLayout>
 

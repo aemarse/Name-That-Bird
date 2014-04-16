@@ -69,6 +69,14 @@
             android:name="com.alexmarse.namethatbird.WaveformDrawer"
             android:label="@string/title_activity_waveform_drawer" >
         </activity>
+        <activity
+            android:name="com.alexmarse.namethatbird.LessonTest"
+            android:label="@string/title_activity_lesson_test"
+            android:parentActivityName="com.alexmarse.namethatbird.NTBSelectLesson" >
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value="com.alexmarse.namethatbird.NTBSelectLesson" />
+        </activity>
     </application>
 
 </manifest>

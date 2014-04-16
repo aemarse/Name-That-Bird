@@ -1,9 +1,17 @@
 package com.alexmarse.namethatbird;
 
+import java.util.concurrent.ExecutionException;
+
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+
 import android.app.ActionBar;
+import android.app.ProgressDialog;
 import android.app.ActionBar.Tab;
 import android.app.FragmentTransaction;
 import android.content.Intent;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v4.app.FragmentActivity;
 import android.support.v4.app.NavUtils;
@@ -13,6 +21,7 @@ import android.view.Menu;
 import android.view.MenuItem;
 
 import com.alexmarse.namethatbird.adapter.TabsPagerAdapter;
+import com.alexmarse.namethatbird.helperclasses.RequestData;
 
 public class NTBCompleteLesson extends FragmentActivity implements ActionBar.TabListener {
 
@@ -22,6 +31,30 @@ public class NTBCompleteLesson extends FragmentActivity implements ActionBar.Tab
 	
 	// Tab titles
 	private String[] tabs = {"Practice", "Test"};
+	
+	// Lesson number that was selected
+	int lesson;
+	
+	// Base and query url
+	public final static String baseUrl = "http://namethatbird.org/api/v1/lessons/";
+	String queryUrl;
+	
+	// JSON object for holding lesson content
+	JSONObject json = null;
+	
+	// Initialize holders for the JSON components
+	JSONArray sounds = null;
+	JSONArray truths = null;
+	
+	// Tags for accessing JSON data
+	private static final String TAG_SOUNDS = "sounds";
+	private static final String TAG_LESSON_ID = "id";
+	private static final String TAG_PLAYLIST_ID = "playlist";
+	private static final String TAG_RESULTS = "results";
+	
+	// Bundle for passing data to fragments
+	Bundle bundle;
+
 	
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -35,7 +68,14 @@ public class NTBCompleteLesson extends FragmentActivity implements ActionBar.Tab
 		Log.e("onCreate: ", "NTBCompleteLesson Activity launched!");
 		
 		// Get the bundle of data from the intent
-		Bundle bundle = intent.getBundleExtra(NTBSelectLesson.EXTRA);
+		bundle = intent.getBundleExtra(NTBSelectLesson.EXTRA);
+		lesson = bundle.getInt("ntb_lesson");
+		
+		// Get the data for the selected lesson
+		getLessonData();
+		
+		// Get the data for each sound in the selected lesson
+//		getSoundTruthData();
 		
 		// Initialization
 		viewPager = (ViewPager)findViewById(R.id.pager);
@@ -71,6 +111,109 @@ public class NTBCompleteLesson extends FragmentActivity implements ActionBar.Tab
             public void onPageScrollStateChanged(int arg0) {
             }
         });
+		
+	}
+	
+	// Lesson data
+	public void getLessonData() {
+		
+		// Form the query url
+		queryUrl = baseUrl + lesson;
+		
+		// HttpRequest to get playlistData from database depending on playlistType
+		try {
+			json = new JSONParse().execute().get();
+		} catch (InterruptedException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (ExecutionException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
+		decodeLessonJSON();
+		
+	}
+	
+	// Sounds, ground truth data
+	public void getSoundTruthData() {
+		
+		// Form the query url
+		queryUrl = baseUrl + lesson;
+		
+		// HttpRequest to get playlistData from database depending on playlistType
+		try {
+			json = new JSONParse().execute().get();
+		} catch (InterruptedException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (ExecutionException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
+	}
+	
+	// Decodes JSON String
+	public void decodeLessonJSON() {
+		
+		try {
+			sounds = json.getJSONArray(TAG_SOUNDS);
+			bundle.putString(TAG_SOUNDS, sounds.toString());
+		} catch (JSONException e) {
+			e.printStackTrace();
+		}
+		
+	}	
+	
+	// Decodes JSON String
+	public void decodeSoundTruthJSON() {
+		
+		try {
+			truths = json.getJSONArray(TAG_RESULTS);
+		} catch (JSONException e) {
+			e.printStackTrace();
+		}
+		
+	}	
+	
+	// Class for JSON parsing
+	private class JSONParse extends AsyncTask<String, String, JSONObject> {
+
+		private ProgressDialog pDialog;
+		private String dMessage = "Setting up your lesson...";
+		
+		@Override
+		protected void onPreExecute() {
+			super.onPreExecute();
+			pDialog = new ProgressDialog(NTBCompleteLesson.this);
+			pDialog.setMessage(dMessage);
+			pDialog.setIndeterminate(false);
+			pDialog.setCancelable(true);
+			pDialog.show();
+		}
+		
+		@Override
+		protected JSONObject doInBackground(String... args) {
+			
+			// Instantiate a RequestData object
+			RequestData reqData = new RequestData();
+			
+			// Get JSON from the url
+			json = reqData.getJSONFromUrl(queryUrl);
+			
+			return json;
+			
+		}
+		
+		@Override
+		protected void onPostExecute(JSONObject json) {
+			pDialog.dismiss();
+			
+			// Decode the JSON Object into its elements
+//			decodeJSON();
+			
+		}
 		
 	}
 	
