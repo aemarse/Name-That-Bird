@@ -21,10 +21,10 @@ import android.content.Intent;
 import android.graphics.Point;
 import android.media.AudioManager;
 import android.media.MediaPlayer;
-import android.media.MediaPlayer.OnBufferingUpdateListener;
 import android.media.MediaPlayer.OnPreparedListener;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.os.CountDownTimer;
 import android.support.v4.app.NavUtils;
 import android.util.Log;
 import android.view.Display;
@@ -116,6 +116,11 @@ public class LessonTest extends Activity implements OnClickListener {
 	
 	// MediaPlayer object
 	MediaPlayer player = null;
+	
+	// MediaPlayer start and end samples, milliseconds
+	double playerStartMs;
+	double playerEndMs;
+	
 	
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -305,7 +310,25 @@ public class LessonTest extends Activity implements OnClickListener {
 //		Log.e("play", "play please");
 		if (player != null) {
 			if (!(player.isPlaying())) {
+				player.seekTo((int)playerStartMs);
 				player.start();
+				
+				CountDownTimer timer = new CountDownTimer((long) (playerEndMs-playerStartMs), 10) {
+
+				    @Override
+				    public void onTick(long millisUntilFinished) {
+				       // Nothing to do
+				    }
+
+				    @Override
+				    public void onFinish() {
+				        if (player.isPlaying()) {
+				             player.pause();
+				        }
+				    }
+				};
+				timer.start(); 
+				
 			}
 		}
 	}
@@ -321,7 +344,9 @@ public class LessonTest extends Activity implements OnClickListener {
 		}
 	}
 	
-	
+	public void setCurrentPos() {
+		player.seekTo((int)playerStartMs);
+	}
 	
 	// BUTTON HANDLERS
 	@Override
@@ -492,6 +517,10 @@ public class LessonTest extends Activity implements OnClickListener {
 		if (endSamp > normalized.length) {
 			endSamp = normalized.length-1;
 		}
+		
+		// Set the player start and end position
+		playerStartMs = startSamp*secsPerPx*1000;
+		playerEndMs = endSamp*secsPerPx*1000;
 		
 		// Now, take only the portion of the normalized array that we want
 		float[] onset = new float[numOffsetSamps*2+1];
