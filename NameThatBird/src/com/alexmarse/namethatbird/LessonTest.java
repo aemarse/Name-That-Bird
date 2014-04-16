@@ -140,10 +140,7 @@ public class LessonTest extends Activity implements OnClickListener {
 		getTruthData();
 		
 		// Set up the waveform drawing surface and add it to the current view
-		wp = new WaveformPanel(this, normalized);
-		setContentView(R.layout.activity_lesson_test);
-		frm = (FrameLayout)findViewById(R.id.frameLayout);
-		frm.addView(wp);
+		drawWaveform(normalized);
 		
 		// Set up the gesture detector
 		gestureDetector = new GestureDetector(this, new GestureListener());
@@ -201,8 +198,14 @@ public class LessonTest extends Activity implements OnClickListener {
 			// Get the sound data for the next sound
 			getSoundData();
 			
+			// Download the waveform file for the next sound
+			float[] normalized = getWaveformFile();
+			
 			// Get the truth data for the next sound
 			getTruthData();
+			
+			// Set up the waveform drawing surface for the next sound and add it to the current view
+			drawWaveform(normalized);
 			
 			player.reset();
 			
@@ -236,8 +239,14 @@ public class LessonTest extends Activity implements OnClickListener {
 			// Get the sound data for the previous sound
 			getSoundData();
 			
+			// Download the waveform file for the next sound
+			float[] normalized = getWaveformFile();
+			
 			// Get the truth data for the previous sound
 			getTruthData();
+			
+			// Set up the waveform drawing surface for the next sound and add it to the current view
+			drawWaveform(normalized);
 			
 			player.reset();
 			
@@ -423,6 +432,14 @@ public class LessonTest extends Activity implements OnClickListener {
 		
 	}
 	 
+	// Draw waveform
+	public void drawWaveform(float[] normalized) {
+		wp = new WaveformPanel(this, normalized);
+		setContentView(R.layout.activity_lesson_test);
+		frm = (FrameLayout)findViewById(R.id.frameLayout);
+		frm.addView(wp);
+	}
+	
 	// Download waveform file for current sound from NTB API
 	public float[] getWaveformFile() {
 		
