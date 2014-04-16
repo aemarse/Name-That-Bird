@@ -174,7 +174,7 @@ public class LessonTest extends Activity implements OnClickListener {
 		player.setOnPreparedListener(new OnPreparedListener() {
 			@Override
 			public void onPrepared(MediaPlayer mp) {
-				mp.start();
+//				mp.start();
 //				Log.e("onPrepared: ", "player prepped");
 			}
 		});
@@ -708,7 +708,7 @@ public class LessonTest extends Activity implements OnClickListener {
 			float y = e.getY();
 			
 			if ((x >= wp.getxMin() && x <= wp.getxMax())
-					&& (y >= wp.getyMin() && y <= wp.getWaveformHeight() * 2)) {
+					&& (y >= wp.getyMin() && y <= wp.getWaveformHeight() * 3)) {
 				Log.e("double tap: ", "x: " + String.valueOf(x) + " y: "
 						+ String.valueOf(y));
 				return true;
@@ -726,7 +726,7 @@ public class LessonTest extends Activity implements OnClickListener {
 			float y = e1.getY();
             
 			if ((x >= wp.getxMin() && x <= wp.getxMax())
-					&& (y >= wp.getyMin() && y <= wp.getWaveformHeight() * 2)) {
+					&& (y >= wp.getyMin() && y <= wp.getWaveformHeight() * 3)) {
 			
 	            try {
 	                float diffY = e2.getY() - e1.getY();
