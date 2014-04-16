@@ -1,6 +1,14 @@
 package com.alexmarse.namethatbird;
 
+import java.io.BufferedInputStream;
 import java.io.IOException;
+import java.io.InputStream;
+import java.net.URL;
+import java.net.URLConnection;
+import java.nio.ByteBuffer;
+import java.nio.FloatBuffer;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.ExecutionException;
 
 import org.json.JSONArray;
@@ -22,6 +30,7 @@ import android.view.Display;
 import android.view.GestureDetector;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.FrameLayout;
@@ -40,11 +49,15 @@ public class LessonTest extends Activity implements OnClickListener {
 	public final static String soundUrl = baseUrl + "api/v1/sounds/";
 	public final static String truthUrl = baseUrl + "api/v1/truth/?sound=";
 	public final static String mediaUrl = baseUrl + "media/";
+	public final static String datExt = ".dat";
 	String queryUrl;
 	
 	// Base url for streaming audio from XC API
 	public final static String baseUrlXc = "http://xeno-canto.org/";
 	public final static String downloadUrlXc = "/download";
+	
+	// Holder for dat file url
+	String datUrl;
 	
 	// Holder for lesson and sound JSON objects
 	JSONObject lessonJson = null;
@@ -120,10 +133,22 @@ public class LessonTest extends Activity implements OnClickListener {
 		currSnd = 0;
 		getSoundData();
 		
+		// Query NTB API to download the waveform file for the current sound
+		float[] normalized = getWaveformFile();
+		
 		// Query NTB API to get the onsetLocs (truth) of the current sound
 		getTruthData();
 		
+		// Set up the waveform drawing surface and add it to the current view
+		wp = new WaveformPanel(this, normalized);
 		setContentView(R.layout.activity_lesson_test);
+		frm = (FrameLayout)findViewById(R.id.frameLayout);
+		frm.addView(wp);
+		
+		// Set up the gesture detector
+		gestureDetector = new GestureDetector(this, new GestureListener());
+		
+//		setContentView(R.layout.activity_lesson_test);
 
 		// Show the Up button in the action bar.
 		setupActionBar();
@@ -367,6 +392,10 @@ public class LessonTest extends Activity implements OnClickListener {
 			speciesId = soundJson.getInt(TAG_SPECIES);
 			fs = soundJson.getInt(TAG_FS);
 			Log.e("xcId", String.valueOf(xcId));
+			
+			// Also set the datUrl
+			datUrl = mediaUrl + xcId + datExt;
+			
 		} catch (JSONException e) {
 			e.printStackTrace();
 		}
@@ -394,6 +423,41 @@ public class LessonTest extends Activity implements OnClickListener {
 		
 	}
 	 
+	// Download waveform file for current sound from NTB API
+	public float[] getWaveformFile() {
+		
+		// Read in dat file
+		List<Byte> wavData = new ArrayList<Byte>();
+		try {
+			wavData = new DownloadFile().execute().get();
+		} catch (InterruptedException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (ExecutionException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
+		Log.e("wavData.size()", String.valueOf(wavData.size()));
+		
+		
+		byte[] byteArray = new byte[wavData.size()];
+		int i = 0;
+
+		for (Byte b : wavData) {
+		    byteArray[i++] = (b != null ? b : 0);
+		}
+		
+		// Decode bytes to floats
+		float[] floatArray = decodeBytes(byteArray);
+		Log.e("floatArray", String.valueOf(floatArray.length));
+		
+		// Normalize data
+		float[] normalized = normalizer(floatArray);
+		
+		return normalized;
+	}
+	
 	
 	// GETTER AND SETTER METHODS
 	
@@ -449,6 +513,121 @@ public class LessonTest extends Activity implements OnClickListener {
 		}
 		
 	}
+	
+	// WAVEFORM STUFF
+	
+	public float[] decodeBytes (byte byteArray[]) { 
+		float floatArray[] = new float[byteArray.length/4]; 
+
+		// wrap the source byte array to the byte buffer 
+		ByteBuffer byteBuf = ByteBuffer.wrap(byteArray); 
+
+		// create a view of the byte buffer as a float buffer 
+		FloatBuffer floatBuf = byteBuf.asFloatBuffer(); 
+
+		// now get the data from the float buffer to the float array, 
+		// it is actually retrieved from the byte array 
+		floatBuf.get (floatArray); 
+
+		return floatArray; 
+	} 
+	
+	public float[] normalizer(float[] raw) {
+		
+		float[] normalized = new float[raw.length];
+		
+		float min = raw[0];
+		float max = raw[0];
+		float curr;
+		
+		for (int i = 0; i < raw.length; i++) {
+			
+			curr = raw[i];
+			
+			if (curr > max) {
+				max = curr;
+			}
+			
+			if (curr < min) {
+				min = curr;
+			}
+			
+		}
+		
+		float normMax = 1;
+		
+		// Puts everything in range [0,1]
+		for (int i = 0; i < raw.length; i++) {
+			normalized[i] = ((normMax * (raw[i] - min))/(max - min));
+		}
+		
+		return normalized;
+	}
+	
+	@Override
+	public boolean onTouchEvent(MotionEvent e) {
+		return gestureDetector.onTouchEvent(e);
+
+	}
+	
+	private class DownloadFile extends AsyncTask<Void, Void, List<Byte>> {
+
+		@Override
+		protected List<Byte> doInBackground(Void... arg0) {
+			
+			int count;
+			List<Byte> wavData = new ArrayList<Byte>();
+			
+			try {
+				URL url = new URL(datUrl);
+				URLConnection connection = url.openConnection();
+				connection.connect();
+				int fileLength = connection.getContentLength();
+//				Log.e("length of file", Integer.toString(fileLength));
+				
+				InputStream input = new BufferedInputStream(url.openStream(), 8192);
+				
+				byte data[] = new byte[1024];
+				
+				while ((count = input.read(data)) != -1) {
+					for (int i = 0; i < data.length; i++) {
+						wavData.add(data[i]);
+					}
+				}
+				
+			} catch (Exception e) {
+		            Log.e("Error: ", e.getMessage());
+		    }
+			
+			return wavData;
+			
+		}
+	}
+	
+	private class GestureListener extends GestureDetector.SimpleOnGestureListener {
+
+		@Override
+		public boolean onDown(MotionEvent e) {
+			return true;
+		}
+		
+		@Override
+		public boolean onDoubleTap(MotionEvent e) {
+			float x = e.getX();
+			float y = e.getY();
+			
+			if ((x >= wp.getxMin() && x <= wp.getxMax())
+					&& (y >= wp.getyMin() && y <= wp.getWaveformHeight() * 2)) {
+				Log.e("double tap: ", "x: " + String.valueOf(x) + " y: "
+						+ String.valueOf(y));
+				return true;
+			} else {
+				return false;
+			}
+		
+		}
+		
+		}
 	
 	/**
 	 * Set up the {@link android.app.ActionBar}.
