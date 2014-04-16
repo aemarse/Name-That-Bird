@@ -110,6 +110,9 @@ public class LessonTest extends Activity implements OnClickListener {
 	// Keeps track of which onset we are on
 	int currOnset;
 	
+	// Holds the normalized audiowaveform array
+	float[] normalized = null;
+	
 	// MediaPlayer object
 	MediaPlayer player = null;
 	
@@ -143,7 +146,7 @@ public class LessonTest extends Activity implements OnClickListener {
 		getSoundData();
 		
 		// Query NTB API to download the waveform file for the current sound
-		float[] normalized = getWaveformFile();
+		normalized = getWaveformFile();
 		
 		// Query NTB API to get the onsetLocs (truth) of the current sound
 		currOnset = 0;
@@ -453,8 +456,8 @@ public class LessonTest extends Activity implements OnClickListener {
 		Log.e("secsPerPx", String.valueOf(secsPerPx));
 		
 		// Sample marker that the given onset starts on
-//		float onsetSec = (float) onsetLocs[currOnset];
-		float onsetSec = (float) 1.5;
+		float onsetSec = (float) onsetLocs[currOnset];
+//		float onsetSec = (float) 1.5;
 		int onsetSamp = (int) Math.floor(onsetSec/secsPerPx);
 		Log.e("onsetSamp", String.valueOf(onsetSamp));
 		
@@ -487,6 +490,7 @@ public class LessonTest extends Activity implements OnClickListener {
 		setContentView(R.layout.activity_lesson_test);
 		frm = (FrameLayout)findViewById(R.id.frameLayout);
 		frm.addView(wp);
+		Log.e("this", this.toString());
 	}
 	
 	// Download waveform file for current sound from NTB API
@@ -672,6 +676,9 @@ public class LessonTest extends Activity implements OnClickListener {
 	
 	private class GestureListener extends GestureDetector.SimpleOnGestureListener {
 
+		private static final int SWIPE_THRESHOLD = 100;
+        private static final int SWIPE_VELOCITY_THRESHOLD = 100;
+		
 		@Override
 		public boolean onDown(MotionEvent e) {
 			return true;
@@ -693,7 +700,80 @@ public class LessonTest extends Activity implements OnClickListener {
 		
 		}
 		
-		}
+		@Override
+        public boolean onFling(MotionEvent e1, MotionEvent e2, float velocityX, float velocityY) {
+            boolean result = false;
+            
+            float x = e1.getX();
+			float y = e1.getY();
+            
+			if ((x >= wp.getxMin() && x <= wp.getxMax())
+					&& (y >= wp.getyMin() && y <= wp.getWaveformHeight() * 2)) {
+			
+	            try {
+	                float diffY = e2.getY() - e1.getY();
+	                float diffX = e2.getX() - e1.getX();
+	                if (Math.abs(diffX) > Math.abs(diffY)) {
+	                    if (Math.abs(diffX) > SWIPE_THRESHOLD && Math.abs(velocityX) > SWIPE_VELOCITY_THRESHOLD) {
+	                        if (diffX > 0) {
+	                            onSwipeRight();
+	                        } else {
+	                            onSwipeLeft();
+	                        }
+	                    }
+	                } else {
+	                    if (Math.abs(diffY) > SWIPE_THRESHOLD && Math.abs(velocityY) > SWIPE_VELOCITY_THRESHOLD) {
+	                        if (diffY > 0) {
+	                            onSwipeBottom();
+	                        } else {
+	                            onSwipeTop();
+	                        }
+	                    }
+	                }
+	            } catch (Exception exception) {
+	                exception.printStackTrace();
+	            }
+			}
+			
+            return result;
+        }
+		
+		public void onSwipeRight() {
+			// Decrement the onset counter
+			if (currOnset > 0) {
+				currOnset --;
+				
+				// Get the current onset
+				float[] onset = getOnset(normalized);
+				
+				// Set up the waveform drawing surface and add it to the current view
+				drawWaveform(onset);
+			}
+	    }
+
+	    public void onSwipeLeft() {
+	    	// Increment the onset counter
+	    	if (currOnset < onsetLocs.length - 1) {
+	    		currOnset ++;
+	    		
+	    		// Get the current onset
+				float[] onset = getOnset(normalized);
+				
+				// Set up the waveform drawing surface and add it to the current view
+				drawWaveform(onset);
+	    		
+	    	}
+	    }
+
+	    public void onSwipeTop() {
+	    	Log.e("swipe", "top");
+	    }
+
+	    public void onSwipeBottom() {
+	    	Log.e("swipe", "bottom");
+	    }
+		
+	}
 	
 	/**
 	 * Set up the {@link android.app.ActionBar}.
