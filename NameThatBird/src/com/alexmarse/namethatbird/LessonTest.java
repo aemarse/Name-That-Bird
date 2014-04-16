@@ -76,6 +76,12 @@ public class LessonTest extends Activity implements OnClickListener {
 	// Holder for ground truth onset_loc data
 	double[] onsetLocs = null;
 	
+	// The number of seconds before and after each onset plot
+	double numOffsetSecs = 0.25;
+	
+	// Number of samps in original file that each samp in waveform file represents
+	int numWaveformSamps = 256;
+	
 	// The number of ground truth onsets in the current sound
 	int numOnsets;
 	
@@ -100,6 +106,9 @@ public class LessonTest extends Activity implements OnClickListener {
 	
 	// Keeps track of which sound we are on
 	int currSnd;
+	
+	// Keeps track of which onset we are on
+	int currOnset;
 	
 	// MediaPlayer object
 	MediaPlayer player = null;
@@ -137,10 +146,14 @@ public class LessonTest extends Activity implements OnClickListener {
 		float[] normalized = getWaveformFile();
 		
 		// Query NTB API to get the onsetLocs (truth) of the current sound
+		currOnset = 0;
 		getTruthData();
 		
+		// Get the first onset
+		float[] onset = getOnset(normalized);
+		
 		// Set up the waveform drawing surface and add it to the current view
-		drawWaveform(normalized);
+		drawWaveform(onset);
 		
 		// Set up the gesture detector
 		gestureDetector = new GestureDetector(this, new GestureListener());
@@ -431,7 +444,43 @@ public class LessonTest extends Activity implements OnClickListener {
 		}
 		
 	}
-	 
+	
+	// Get onset
+	public float[] getOnset(float[] normalized) {
+		
+		// Num of secs that each pixel-sample represents
+		float secsPerPx = (float)numWaveformSamps/(float)fs;
+		Log.e("secsPerPx", String.valueOf(secsPerPx));
+		
+		// Sample marker that the given onset starts on
+//		float onsetSec = (float) onsetLocs[currOnset];
+		float onsetSec = (float) 1.5;
+		int onsetSamp = (int) Math.floor(onsetSec/secsPerPx);
+		Log.e("onsetSamp", String.valueOf(onsetSamp));
+		
+		// Figure out the number of offset samps
+		int numOffsetSamps = (int) Math.floor(numOffsetSecs/secsPerPx);
+		
+		// Figure out the start and end onset locations
+		int startSamp = onsetSamp - numOffsetSamps;
+		int endSamp = onsetSamp + numOffsetSamps;
+		
+		if (startSamp < 0) {
+			startSamp = 0;
+		}
+		
+		if (endSamp > normalized.length) {
+			endSamp = normalized.length-1;
+		}
+		
+		// Now, take only the portion of the normalized array that we want
+		float[] onset = new float[numOffsetSamps*2+1];
+		System.arraycopy(normalized, startSamp, onset, 0, endSamp-startSamp);
+		
+		// Return the onset array
+		return onset;
+	}
+	
 	// Draw waveform
 	public void drawWaveform(float[] normalized) {
 		wp = new WaveformPanel(this, normalized);
