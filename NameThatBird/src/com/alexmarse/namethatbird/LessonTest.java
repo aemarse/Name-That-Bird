@@ -34,8 +34,11 @@ import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.View.OnClickListener;
+import android.widget.Button;
 import android.widget.FrameLayout;
 import android.widget.ImageButton;
+import android.widget.RelativeLayout;
+import android.widget.RelativeLayout.LayoutParams;
 
 import com.alexmarse.namethatbird.helperclasses.RequestData;
 
@@ -76,6 +79,9 @@ public class LessonTest extends Activity implements OnClickListener {
 	
 	// Holder for ground truth onset_loc data
 	double[] onsetLocs = null;
+	
+	// The location of the onset
+	int onsetSamp;
 	
 	// The number of seconds before and after each onset plot
 	double numOffsetSecs = 0.25;
@@ -500,7 +506,7 @@ public class LessonTest extends Activity implements OnClickListener {
 		float onsetSec = (float) onsetLocs[currOnset];
 		Log.e("onsetSec", String.valueOf(onsetSec));
 //		float onsetSec = (float) 1.5;
-		int onsetSamp = (int) Math.floor(onsetSec/secsPerPx);
+		onsetSamp = (int) Math.floor(onsetSec/secsPerPx);
 		Log.e("onsetSamp", String.valueOf(onsetSamp));
 		
 		// Figure out the number of offset samps
@@ -512,6 +518,9 @@ public class LessonTest extends Activity implements OnClickListener {
 		
 		if (startSamp < 0) {
 			startSamp = 0;
+		} 
+		else if (startSamp > normalized.length) {
+			startSamp = normalized.length - numOffsetSamps;
 		}
 		
 		if (endSamp > normalized.length) {
@@ -536,8 +545,21 @@ public class LessonTest extends Activity implements OnClickListener {
 		setContentView(R.layout.activity_lesson_test);
 		frm = (FrameLayout)findViewById(R.id.frameLayout);
 		frm.addView(wp);
+		
+//		// Also add a button to the view
+//		Button onsetButt = new Button(this);
+//		frm.addView(onsetButt);
+//		onsetButt.setX(onsetSamp*((screenWidth/2 + 10)/onset.length));
+//		onsetButt.setY(50);
+//				
+//		// Change the width, height, x loc, y loc, and background color of the button
+//		FrameLayout.LayoutParams params = (android.widget.FrameLayout.LayoutParams) onsetButt.getLayoutParams();
+//		params.width = 20;
+//		params.height = 200;
+//		onsetButt.setLayoutParams(params);
+		
 		gestureDetector = new GestureDetector(this, new GestureListener());
-//		Log.e("this", this.toString());
+
 	}
 	
 	// Download waveform file for current sound from NTB API
@@ -733,17 +755,30 @@ public class LessonTest extends Activity implements OnClickListener {
 		
 		@Override
 		public boolean onDoubleTap(MotionEvent e) {
-			float x = e.getX();
-			float y = e.getY();
+			float x = e.getX() - 20;
+			float y = e.getY()/3;
+			
+			boolean result = false;
 			
 			if ((x >= wp.getxMin() && x <= wp.getxMax())
 					&& (y >= wp.getyMin() && y <= wp.getWaveformHeight() * 3)) {
-				Log.e("double tap: ", "x: " + String.valueOf(x) + " y: "
-						+ String.valueOf(y));
-				return true;
-			} else {
-				return false;
+				
+				// Also add a button to the view
+				Button onsetButt = new Button(wp.getContext());
+				frm.addView(onsetButt);
+				onsetButt.setX(x);
+				onsetButt.setY(y);
+
+				// Change the width, height, x loc, y loc, and background color of the button
+				FrameLayout.LayoutParams params = (android.widget.FrameLayout.LayoutParams) onsetButt.getLayoutParams();
+				params.width = 50;
+				params.height = 200;
+				onsetButt.setLayoutParams(params);
+				
+				result = true;
 			}
+			
+			return result;
 		
 		}
 		

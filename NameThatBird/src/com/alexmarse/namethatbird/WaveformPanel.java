@@ -348,6 +348,10 @@ public class WaveformPanel extends SurfaceView implements
 		this.waveformWidth = waveformWidth;
 	}
 	
+	public float getPxPerSamp() {
+		return pxPerSamp;
+	}
+	
 	private class GestureListener extends
 			GestureDetector.SimpleOnGestureListener {
 
