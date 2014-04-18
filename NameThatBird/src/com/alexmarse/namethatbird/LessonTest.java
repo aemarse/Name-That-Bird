@@ -29,21 +29,28 @@ import android.support.v4.app.NavUtils;
 import android.util.Log;
 import android.view.Display;
 import android.view.GestureDetector;
+import android.view.GestureDetector.OnGestureListener;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.View.OnClickListener;
+import android.widget.AdapterView;
 import android.widget.Button;
 import android.widget.FrameLayout;
+import android.widget.GridView;
 import android.widget.ImageButton;
 import android.widget.RelativeLayout;
 import android.widget.RelativeLayout.LayoutParams;
 
+import com.alexmarse.namethatbird.helperclasses.ListViewSetup;
 import com.alexmarse.namethatbird.helperclasses.RequestData;
 
 public class LessonTest extends Activity implements OnClickListener {
 
+	GridView gridView;
+	ListViewSetup gridSetup;
+	
 	// Lesson number that was selected
 	int lesson;
 	
@@ -52,6 +59,7 @@ public class LessonTest extends Activity implements OnClickListener {
 	public final static String lessonUrl = baseUrl + "api/v1/lessons/";
 	public final static String soundUrl = baseUrl + "api/v1/sounds/";
 	public final static String truthUrl = baseUrl + "api/v1/truth/?sound=";
+	public final static String speciesUrl = baseUrl + "api/v1/species/";
 	public final static String mediaUrl = baseUrl + "media/";
 	public final static String datExt = ".dat";
 	String queryUrl;
@@ -67,15 +75,22 @@ public class LessonTest extends Activity implements OnClickListener {
 	JSONObject lessonJson = null;
 	JSONObject soundJson = null;
 	JSONObject truthJson = null;
+	JSONObject speciesJson = null;
+	JSONObject lessonSpeciesJson = null;
 	
 	// Holders for the sounds and truths JSON arrays
 	JSONArray sounds = null;
 	JSONArray truths = null;
+	JSONArray lessonSpecies = null;
 	
 	// Holder for sound data
 	int xcId;
 	int speciesId;
 	int fs;
+	
+	// Holder for species data
+	String engName;
+	String[] engNames;
 	
 	// Holder for ground truth onset_loc data
 	double[] onsetLocs = null;
@@ -84,7 +99,7 @@ public class LessonTest extends Activity implements OnClickListener {
 	int onsetSamp;
 	
 	// The number of seconds before and after each onset plot
-	double numOffsetSecs = 0.25;
+	double numOffsetSecs = 0.1;
 	
 	// Number of samps in original file that each samp in waveform file represents
 	int numWaveformSamps = 256;
@@ -100,6 +115,7 @@ public class LessonTest extends Activity implements OnClickListener {
 	private static final String TAG_SPECIES = "species";
 	private static final String TAG_FS = "fs";
 	private static final String TAG_ONSET_LOC = "onset_loc";
+	private static final String TAG_ENG_NAME = "eng_name";
 	private static final String TAG_RESULTS = "results";
 	
 	// Drawing stuff
@@ -108,8 +124,11 @@ public class LessonTest extends Activity implements OnClickListener {
 	int screenWidth;
 	int screenHeight;
 	
-	// Gesture stuff
+	// Gesture detector for the overall view
 	GestureDetector gestureDetector;
+	
+	// Gesture detector for the buttons
+	GestureDetector buttGestureDetector;
 	
 	// Keeps track of which sound we are on
 	int currSnd;
@@ -127,14 +146,19 @@ public class LessonTest extends Activity implements OnClickListener {
 	double playerStartMs;
 	double playerEndMs;
 	
+	// Number of buttons (annotations) that have been created (for a particular sound)
+	int numButts;
+	
+	// Tag associated with buttons
+	int BUTT_TAG = 0;
 	
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
+		setContentView(R.layout.activity_lesson_test);
 		
 		// Instantiate MediaPlayer object
 		player = new MediaPlayer();
-		
 		
 		// Get the Intent
 		Intent intent = getIntent();
@@ -171,8 +195,11 @@ public class LessonTest extends Activity implements OnClickListener {
 		// Set up the waveform drawing surface and add it to the current view
 		drawWaveform(onset);
 		
-		// Set up the gesture detector
-		gestureDetector = new GestureDetector(this, new GestureListener());
+		// Create a Gesture Detector for the view w/ listener class
+//		gestureDetector = new GestureDetector(this, new GestureListener());
+		
+		// Create a Gesture Detector for the buttons w/ listener class
+		buttGestureDetector = new GestureDetector(this, new ButtonGestureListener());
 		
 //		setContentView(R.layout.activity_lesson_test);
 
@@ -224,6 +251,9 @@ public class LessonTest extends Activity implements OnClickListener {
 			// Increment sound counter
 			currSnd ++;
 			
+			// Reset the button counter
+			numButts = 0;
+			
 			// Get the sound data for the next sound
 			getSoundData();
 			
@@ -273,6 +303,9 @@ public class LessonTest extends Activity implements OnClickListener {
 			
 			// Reset the onset counter
 			currOnset = 0;
+			
+			// Reset the button counter
+			numButts = 0;
 			
 			// Get the sound data for the previous sound
 			getSoundData();
@@ -381,6 +414,9 @@ public class LessonTest extends Activity implements OnClickListener {
 		// Decode the JSON
 		decodeLessonJSON();
 		
+		// Query NTB API to get the engName[] from the species id of each species in the current lesson
+		getLessonSpeciesData();
+		
 	}
 	
 	// Query NTB API to get the xc_id, fs, and species of the current sound
@@ -410,6 +446,75 @@ public class LessonTest extends Activity implements OnClickListener {
 		
 		// Decode the JSON
 		decodeSoundJSON();
+		
+		// Get the species data for the current sound
+		getSpeciesData();
+		
+	}
+	
+	// Query NTB API to get the eng_name of the current sound's species
+	public void getLessonSpeciesData() {
+		
+		engNames = new String[lessonSpecies.length()];
+		
+		// Loop through the current lesson's species array
+		for (int i = 0; i < lessonSpecies.length(); i++) {
+			
+			// Form the query url for the current species
+			try {
+				queryUrl = speciesUrl + lessonSpecies.getInt(i);
+			} catch (JSONException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+			
+			// Get the current species' json data
+			try {
+				lessonSpeciesJson = new JSONParse().execute().get();
+			} catch (InterruptedException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			} catch (ExecutionException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+			
+//			// Decode the JSON
+//			decodeSpeciesJSON();
+			
+			try {
+				engNames[i] = lessonSpeciesJson.getString(TAG_ENG_NAME);
+				Log.e("engNames", engNames[i]);
+			} catch (JSONException e) {
+				e.printStackTrace();
+			}
+			
+		}
+		
+		// Set up the species name grid view
+		setupSpeciesGrid();
+		
+	}
+	
+	// Get species data
+	public void getSpeciesData() {
+		
+		// Form the query url for the current sound
+		queryUrl = speciesUrl + speciesId;
+		
+		// HttpRequest to get species data from NTB API
+		try {
+			speciesJson = new JSONParse().execute().get();
+		} catch (InterruptedException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (ExecutionException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
+		// Decode the JSON
+		decodeSpeciesJSON();
 		
 	}
 	
@@ -449,6 +554,7 @@ public class LessonTest extends Activity implements OnClickListener {
 		
 		try {
 			sounds = lessonJson.getJSONArray(TAG_SOUNDS);
+			lessonSpecies = lessonJson.getJSONArray(TAG_SPECIES);
 			Log.e("sounds", sounds.toString());
 		} catch (JSONException e) {
 			e.printStackTrace();
@@ -468,6 +574,18 @@ public class LessonTest extends Activity implements OnClickListener {
 			// Also set the datUrl
 			datUrl = mediaUrl + xcId + datExt;
 			
+		} catch (JSONException e) {
+			e.printStackTrace();
+		}
+		
+	}
+	
+	// Decodes JSON String
+	public void decodeSpeciesJSON() {
+		
+		try {
+			engName = speciesJson.getString(TAG_ENG_NAME);
+			Log.e("eng_name", engName);
 		} catch (JSONException e) {
 			e.printStackTrace();
 		}
@@ -503,6 +621,8 @@ public class LessonTest extends Activity implements OnClickListener {
 		Log.e("secsPerPx", String.valueOf(secsPerPx));
 		
 		// Sample marker that the given onset starts on
+		Log.e("currOnset", String.valueOf(currOnset));
+		Log.e("onsetLocs.length", String.valueOf(onsetLocs.length));
 		float onsetSec = (float) onsetLocs[currOnset];
 		Log.e("onsetSec", String.valueOf(onsetSec));
 //		float onsetSec = (float) 1.5;
@@ -542,16 +662,17 @@ public class LessonTest extends Activity implements OnClickListener {
 	// Draw waveform
 	public void drawWaveform(float[] onset) {
 		wp = new WaveformPanel(this, onset);
-		setContentView(R.layout.activity_lesson_test);
+//		setContentView(R.layout.activity_lesson_test);
 		frm = (FrameLayout)findViewById(R.id.frameLayout);
 		frm.addView(wp);
 		
 //		// Also add a button to the view
 //		Button onsetButt = new Button(this);
 //		frm.addView(onsetButt);
-//		onsetButt.setX(onsetSamp*((screenWidth/2 + 10)/onset.length));
-//		onsetButt.setY(50);
-//				
+////		onsetButt.setX(onsetSamp*((screenWidth/2 + 10)/onset.length));
+//		onsetButt.setX(10 + onsetSamp*((screenWidth-20)/onset.length));
+//		onsetButt.setY(wp.getWaveformHeight() + 20);
+//
 //		// Change the width, height, x loc, y loc, and background color of the button
 //		FrameLayout.LayoutParams params = (android.widget.FrameLayout.LayoutParams) onsetButt.getLayoutParams();
 //		params.width = 20;
@@ -743,6 +864,8 @@ public class LessonTest extends Activity implements OnClickListener {
 		}
 	}
 	
+	
+	// Gesture Detector class for the View
 	private class GestureListener extends GestureDetector.SimpleOnGestureListener {
 
 		private static final int SWIPE_THRESHOLD = 100;
@@ -763,17 +886,8 @@ public class LessonTest extends Activity implements OnClickListener {
 			if ((x >= wp.getxMin() && x <= wp.getxMax())
 					&& (y >= wp.getyMin() && y <= wp.getWaveformHeight() * 3)) {
 				
-				// Also add a button to the view
-				Button onsetButt = new Button(wp.getContext());
-				frm.addView(onsetButt);
-				onsetButt.setX(x);
-				onsetButt.setY(y);
-
-				// Change the width, height, x loc, y loc, and background color of the button
-				FrameLayout.LayoutParams params = (android.widget.FrameLayout.LayoutParams) onsetButt.getLayoutParams();
-				params.width = 50;
-				params.height = 200;
-				onsetButt.setLayoutParams(params);
+				// Create a button
+				createButton(x, y);
 				
 				result = true;
 			}
@@ -812,6 +926,8 @@ public class LessonTest extends Activity implements OnClickListener {
 	                        }
 	                    }
 	                }
+	                result = true;
+	                
 	            } catch (Exception exception) {
 	                exception.printStackTrace();
 	            }
@@ -855,6 +971,130 @@ public class LessonTest extends Activity implements OnClickListener {
 	    	Log.e("swipe", "bottom");
 	    }
 		
+	    public void createButton(float x, float y) {
+	    
+	    	// Increment the button counter
+	    	numButts += 1;
+	    	
+	    	// Add a new button to the view
+			Button onsetButt = new Button(wp.getContext());
+			frm.addView(onsetButt);
+			onsetButt.setX(x);
+			onsetButt.setY(wp.getyMin());
+
+			// Set the parameters of the button
+			FrameLayout.LayoutParams params = (android.widget.FrameLayout.LayoutParams) onsetButt.getLayoutParams();
+			params.width = 50;
+			params.height = (int) wp.getWaveformHeight()*2 - (int) wp.yPad;
+			onsetButt.setLayoutParams(params);
+			
+			// Set the tag/id for the button
+			onsetButt.setId(numButts-1);
+			onsetButt.setTag(BUTT_TAG);
+			
+			Log.e("id: ", String.valueOf(onsetButt.getId()));
+			Log.e("tag: ", String.valueOf(onsetButt.getTag()));
+			
+			// Set the onClickListener for the button
+			onsetButt.setOnClickListener(buttClicked);
+			
+//			// Set the onTouchListener for the button
+//			onsetButt.setOnTouchListener(new View.OnTouchListener() {
+//				
+//				@Override
+//				public boolean onTouch(View v, MotionEvent event) {
+//					// TODO Auto-generated method stub
+//					return buttGestureDetector.onTouchEvent(event);
+//				}
+//			});	
+	    	
+	    }
+	    
+	    OnClickListener buttClicked = new OnClickListener() {
+
+			@Override
+			public void onClick(View v) {
+				// Log the id value
+				Log.e("id: ", String.valueOf(v.getId()));
+			}
+	    	
+	    };
+	    
+	}
+	
+	// Gesture Detector class for Annotation buttons
+	private class ButtonGestureListener extends GestureDetector.SimpleOnGestureListener {
+		
+		@Override
+		public boolean onDown(MotionEvent e) {
+		    // TODO Auto-generated method stub
+			Log.i("Test", "On Down");
+		    return true;
+		}
+
+		@Override
+		public boolean onFling(MotionEvent e1, MotionEvent e2, float velocityX,
+		        float velocityY) {
+		    // TODO Auto-generated method stub
+		    Log.i("Test", "On Fling");
+		    return true;
+		}
+
+		@Override
+		public void onLongPress(MotionEvent e) {
+		    // TODO Auto-generated method stub
+			
+		}
+
+		@Override
+		public boolean onScroll(MotionEvent e1, MotionEvent e2, float distanceX,
+		        float distanceY) {
+		    // TODO Auto-generated method stub
+		    return false;
+		}
+
+		@Override
+		public void onShowPress(MotionEvent e) {
+		    // TODO Auto-generated method stub
+
+		}
+
+		@Override
+		public boolean onSingleTapUp(MotionEvent e) {
+		    // TODO Auto-generated method stub
+			Log.e("Test", "onSingleTapUp");
+		    return false;
+		}
+		
+	}
+	
+	void setupSpeciesGrid() {
+		
+		// Instantiate the GridView
+		gridView = (GridView) findViewById(R.id.gv_lesson_test);
+		
+		for (int i = 0; i < engNames.length; i++) {
+			Log.i("engNamesssss", engNames[i]);
+		}
+		
+		Log.i("gridView context", gridView.getContext().toString());
+		
+		// Instantiate the gridSetup object
+		gridSetup = new ListViewSetup(this, engNames, gridView);
+		gridView = gridSetup.setupGrid();
+		
+		// Listen for list item clicks
+		gridView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+
+			@Override
+			public void onItemClick(AdapterView<?> parent, final View view, int position,
+					long id) {
+				// Do something when item clicked
+				Log.e("item clicked: ", Integer.toString((int)id));
+			}
+			
+		});
+		
 	}
 	
 	/**
@@ -890,4 +1130,5 @@ public class LessonTest extends Activity implements OnClickListener {
 		return super.onOptionsItemSelected(item);
 	}
 
+	
 }

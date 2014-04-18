@@ -252,6 +252,7 @@ public class WaveformPanel extends SurfaceView implements
 			// Draw the upper and lower lines
 			canvas.drawLine(x1, y1 + getyMin(), x2, y2 + getyMin(), paint);
 			canvas.drawLine(x1, yMax - y1 + xAxis, x2, yMax - y2 + xAxis, paint);
+//			canvas.drawLine(x1, yMax*2 - y1, x2, yMax*2 - y2, paint); // this line should replace the above line properly (not yet tested)
 
 			// canvas.drawLine(x1, xAxis-y1, x2, xAxis-y2, paint); // these work
 			// more or less, but they're flipped
