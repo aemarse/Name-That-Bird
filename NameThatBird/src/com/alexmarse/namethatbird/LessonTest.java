@@ -110,8 +110,15 @@ public class LessonTest extends Activity implements OnClickListener {
 	// The location of the onset
 	int onsetSamp;
 	
+	// Onset and offset location of the annotation in terms of seconds in original audio
+	double waveOnset;
+	double waveOffset;
+	
 	// The number of seconds before and after each onset plot
 	double numOffsetSecs = 0.1;
+	float secsPerPx;
+	int startSamp;
+	int endSamp;
 	
 	// Number of samps in original file that each samp in waveform file represents
 	int numWaveformSamps = 256;
@@ -635,7 +642,7 @@ public class LessonTest extends Activity implements OnClickListener {
 	public float[] getOnset(float[] normalized) {
 		
 		// Num of secs that each pixel-sample represents
-		float secsPerPx = (float)numWaveformSamps/(float)fs;
+		secsPerPx = (float)numWaveformSamps/(float)fs;
 		Log.e("secsPerPx", String.valueOf(secsPerPx));
 		
 		// Sample marker that the given onset starts on
@@ -651,8 +658,8 @@ public class LessonTest extends Activity implements OnClickListener {
 		int numOffsetSamps = (int) Math.floor(numOffsetSecs/secsPerPx);
 		
 		// Figure out the start and end onset locations
-		int startSamp = onsetSamp - numOffsetSamps;
-		int endSamp = onsetSamp + numOffsetSamps;
+		startSamp = onsetSamp - numOffsetSamps;
+		endSamp = onsetSamp + numOffsetSamps;
 		
 		if (startSamp < 0) {
 			startSamp = 0;
@@ -1010,6 +1017,19 @@ public class LessonTest extends Activity implements OnClickListener {
 			onsetButt.setId(numButts-1);
 			onsetButt.setTag(BUTT_TAG);
 			
+			// Set waveOnset and waveOffset params of the current button
+			float onsetSamp = ((onsetButt.getX() - params.width/2) - wp.getxMin()) / wp.getPxPerSamp();
+			float offsetSamp = ((onsetButt.getX() + params.width/2) - wp.getxMin()) / wp.getPxPerSamp();
+			waveOnset = (onsetSamp * secsPerPx) + (startSamp * secsPerPx);
+			waveOffset = (offsetSamp * secsPerPx) + (startSamp * secsPerPx);
+			
+			Log.i("wp.pxPerSamp", String.valueOf(wp.getPxPerSamp()));
+			Log.i("onsetSamp", String.valueOf(onsetSamp));
+			Log.i("offsetSamp", String.valueOf(offsetSamp));
+			Log.i("secsPerPx", String.valueOf(secsPerPx));
+			Log.i("waveOnset", String.valueOf(waveOnset));
+			Log.i("waveOffset", String.valueOf(waveOffset));
+			
 			Log.e("id: ", String.valueOf(onsetButt.getId()));
 			Log.e("tag: ", String.valueOf(onsetButt.getTag()));
 			
@@ -1112,8 +1132,8 @@ public class LessonTest extends Activity implements OnClickListener {
 				// Get all the data we need
 				int sound = currSndId;
 				int user = USER;
-				double waveOnset = 1.0;
-				double waveOffset = 2.0;
+//				double waveOnset = waveOnset;
+//				double waveOffset = waveOffset;
 				int species = 1;
 				try {
 					species = lessonSpecies.getInt((int)id);
