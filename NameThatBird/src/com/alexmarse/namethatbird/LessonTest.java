@@ -11,6 +11,14 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
 
+import org.apache.http.HttpEntity;
+import org.apache.http.HttpResponse;
+import org.apache.http.client.HttpClient;
+import org.apache.http.client.methods.HttpPost;
+import org.apache.http.client.methods.HttpUriRequest;
+import org.apache.http.entity.StringEntity;
+import org.apache.http.impl.client.DefaultHttpClient;
+import org.apache.http.util.EntityUtils;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -29,7 +37,6 @@ import android.support.v4.app.NavUtils;
 import android.util.Log;
 import android.view.Display;
 import android.view.GestureDetector;
-import android.view.GestureDetector.OnGestureListener;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.MotionEvent;
@@ -40,8 +47,6 @@ import android.widget.Button;
 import android.widget.FrameLayout;
 import android.widget.GridView;
 import android.widget.ImageButton;
-import android.widget.RelativeLayout;
-import android.widget.RelativeLayout.LayoutParams;
 
 import com.alexmarse.namethatbird.helperclasses.ListViewSetup;
 import com.alexmarse.namethatbird.helperclasses.RequestData;
@@ -54,12 +59,19 @@ public class LessonTest extends Activity implements OnClickListener {
 	// Lesson number that was selected
 	int lesson;
 	
+	// The current sound (in NTB API terms)
+	int currSndId;
+	
+	// The user, for now
+	int USER = 1;
+	
 	// Base and query url for NTB API
 	public final static String baseUrl = "http://namethatbird.org/";
 	public final static String lessonUrl = baseUrl + "api/v1/lessons/";
 	public final static String soundUrl = baseUrl + "api/v1/sounds/";
 	public final static String truthUrl = baseUrl + "api/v1/truth/?sound=";
 	public final static String speciesUrl = baseUrl + "api/v1/species/";
+	public final static String annotationsUrl = baseUrl + "api/v1/annotations/";
 	public final static String mediaUrl = baseUrl + "media/";
 	public final static String datExt = ".dat";
 	String queryUrl;
@@ -117,6 +129,13 @@ public class LessonTest extends Activity implements OnClickListener {
 	private static final String TAG_ONSET_LOC = "onset_loc";
 	private static final String TAG_ENG_NAME = "eng_name";
 	private static final String TAG_RESULTS = "results";
+	
+	// JSON POST TAGS
+	private static final String POST_SOUND = "sound";
+	private static final String POST_USER = "user";
+	private static final String POST_WAVE_ONSET = "wave_onset";
+	private static final String POST_WAVE_OFFSET = "wave_offset";
+	private static final String POST_SPECIES = "species";
 	
 	// Drawing stuff
 	WaveformPanel wp;  
@@ -423,7 +442,7 @@ public class LessonTest extends Activity implements OnClickListener {
 	public void getSoundData() {
 		
 		// Form the query url
-		int currSndId;
+//		int currSndId;
 		try {
 			currSndId = sounds.getInt(currSnd);
 		} catch (JSONException e1) {
@@ -522,7 +541,6 @@ public class LessonTest extends Activity implements OnClickListener {
 	public void getTruthData() {
 		
 		// Form the query url
-		int currSndId;
 		try {
 			currSndId = sounds.getInt(currSnd);
 		} catch (JSONException e1) {
@@ -1068,7 +1086,7 @@ public class LessonTest extends Activity implements OnClickListener {
 		
 	}
 	
-	void setupSpeciesGrid() {
+	public void setupSpeciesGrid() {
 		
 		// Instantiate the GridView
 		gridView = (GridView) findViewById(R.id.gv_lesson_test);
@@ -1089,11 +1107,121 @@ public class LessonTest extends Activity implements OnClickListener {
 			@Override
 			public void onItemClick(AdapterView<?> parent, final View view, int position,
 					long id) {
-				// Do something when item clicked
 				Log.e("item clicked: ", Integer.toString((int)id));
+				
+				// Get all the data we need
+				int sound = currSndId;
+				int user = USER;
+				double waveOnset = 1.0;
+				double waveOffset = 2.0;
+				int species = 1;
+				try {
+					species = lessonSpecies.getInt((int)id);
+				} catch (JSONException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+				
+				// Make the JSON Object for HTTP POST
+				JSONObject obj = dataToJSON(sound, user, waveOnset, waveOffset, species);
+				
+				// Call AsyncTask to do HTTP POST
+				new JsonPost().execute(obj);
+				
 			}
 			
 		});
+		
+	}
+	
+	// Pack data into a JSON Object
+	public JSONObject dataToJSON(int sound, int user, double waveOnset, double waveOffset, int species) {
+		
+		// Initialize JSONObject
+		JSONObject obj = new JSONObject();
+		
+		// Put data into the object
+    	try {
+    		obj.put(POST_SOUND, sound);
+    		obj.put(POST_USER, user);
+    		obj.put(POST_WAVE_ONSET, waveOnset);
+    		obj.put(POST_WAVE_OFFSET, waveOffset);
+    		obj.put(POST_SPECIES, species);
+    	} catch (JSONException e) {
+    		e.printStackTrace();
+    	}
+		
+		return obj;
+	}
+	
+	// Make HTTP POST
+	public void postToDb(JSONObject obj) {
+		
+		try {
+    		
+    		// Create a default HTTP client
+    		HttpClient client = new DefaultHttpClient();
+    		
+    		// Create HTTP post object
+    		HttpPost poster = new HttpPost(annotationsUrl);
+    		
+    		// Get a string from the JSON Object
+    		String jsonString = obj.toString();
+    		Log.e("json string: ", jsonString);
+    		
+    		// Set the HTTP entity
+    		StringEntity entity = new StringEntity(jsonString);
+    		poster.setEntity(entity);
+    		
+    		// Set the header
+    		poster.setHeader("Accept", "application/json");
+            poster.setHeader("Content-type","application/json");
+    		
+    		// Execute the post
+    		HttpResponse response = client.execute((HttpUriRequest)poster);
+    		
+    		// Get entity from the response
+    		HttpEntity entityHttp = response.getEntity();
+    		
+    		// Log the response (should be JSON string data)
+    		if (entity != null) {
+                Log.e("result: ", EntityUtils.toString(entityHttp));
+            }
+    		
+    	} catch(Exception e) {
+    		Log.e("post error: ", "Unable to post to database");
+    		e.printStackTrace();
+    	}
+		
+	}
+	
+	// Class for JSON posting
+	public class JsonPost extends AsyncTask<JSONObject, Void, String> {
+
+		private ProgressDialog pDialog;
+		private String dMessage = "Posting annotation to database...";
+		
+		@Override
+		protected void onPreExecute() {
+			super.onPreExecute();
+			pDialog = new ProgressDialog(LessonTest.this);
+			pDialog.setMessage(dMessage);
+			pDialog.setIndeterminate(false);
+			pDialog.setCancelable(true);
+			pDialog.show();
+		}
+
+		@Override
+		protected String doInBackground(JSONObject... obj) {
+			
+			postToDb(obj[0]);
+			return null;
+		}
+		
+		@Override
+		protected void onPostExecute(String str) {
+			pDialog.dismiss();
+		}
 		
 	}
 	
