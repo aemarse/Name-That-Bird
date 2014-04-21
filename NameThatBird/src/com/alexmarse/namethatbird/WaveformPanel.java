@@ -109,11 +109,13 @@ public class WaveformPanel extends SurfaceView implements
 
 		// Set the waveform height and width, taking into account some padding
 		xPad = 10;
-		yPad = 50;
+		yPad = 80;
 
-		setWaveformHeight(viewHeight / 4 - yPad); // For now, make it take up half
+		setWaveformHeight((int)(viewHeight / 2.5 - yPad)); // For now, make it take up half
 												// the height of the view minus
 												// some padding
+//		setWaveformHeight(viewHeight / 4 - yPad);
+		
 		setWaveformWidth(viewWidth - xPad * 2); // Take up the width of the view
 												// minus the l/r padding
 

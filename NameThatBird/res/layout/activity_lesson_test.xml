@@ -12,15 +12,15 @@
         android:id="@+id/frameLayout"
         android:layout_width="fill_parent"
         android:layout_height="fill_parent" >
-
     </FrameLayout>
     
     <GridView
             android:id="@+id/gv_lesson_test"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:layout_above="@+id/ll"
             android:numColumns="2"
-            android:layout_marginBottom="75dp"
+            android:layout_marginBottom="10dp"
             android:layout_marginTop="250dp"
             android:layout_centerHorizontal="true"
             android:textAlignment="center"
@@ -31,8 +31,8 @@
         android:id="@+id/ll"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_alignParentBottom="true"
         android:layout_centerHorizontal="true"
+        android:layout_above="@+id/tv1"
         android:layout_marginBottom="10dp"
         android:background="#000000" >
 
@@ -65,5 +65,31 @@
             android:src="@drawable/ic_action_next" />
         
     </LinearLayout>
+
+    <TextView
+        android:id="@+id/tv1"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignBottom="@+id/frameLayout"
+        android:layout_centerHorizontal="true"
+        android:text="Recording # 0/0"
+        android:textAppearance="?android:attr/textAppearanceSmall" />
+
+    <TextView
+        android:id="@+id/tv2"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_centerHorizontal="true"
+        android:layout_alignTop="@+id/frameLayout"
+        android:text="PRACTICE MODE" />
+
+    <TextView
+        android:id="@+id/tv3"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/tv2"
+        android:layout_centerHorizontal="true"
+        android:text="Onset 0/0"
+        android:textAppearance="?android:attr/textAppearanceSmall" />
 
 </RelativeLayout>

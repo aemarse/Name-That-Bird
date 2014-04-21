@@ -47,6 +47,7 @@ import android.widget.Button;
 import android.widget.FrameLayout;
 import android.widget.GridView;
 import android.widget.ImageButton;
+import android.widget.TextView;
 
 import com.alexmarse.namethatbird.helperclasses.ListViewSetup;
 import com.alexmarse.namethatbird.helperclasses.RequestData;
@@ -99,6 +100,12 @@ public class LessonTest extends Activity implements OnClickListener {
 	int xcId;
 	int speciesId;
 	int fs;
+	
+	// Holder for practice and test sound ids
+	int[] practiceSounds;
+	int[] testSounds;
+	
+	boolean practiceBool;
 	
 	// Holder for species data
 	String engName;
@@ -178,10 +185,23 @@ public class LessonTest extends Activity implements OnClickListener {
 	// Tag associated with buttons
 	int BUTT_TAG = 0;
 	
+	// UI TextView elements
+	TextView tvMode;
+	TextView tvRec;
+	TextView tvOnset;
+	
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_lesson_test);
+		
+		// Instantiate the UI elements
+		tvMode = (TextView) findViewById(R.id.tv2);
+		tvRec = (TextView) findViewById(R.id.tv1);
+		tvOnset = (TextView) findViewById(R.id.tv3);
+		
+		// Set the practice boolean to true
+		practiceBool = true;
 		
 		// Instantiate MediaPlayer object
 		player = new MediaPlayer();
@@ -203,6 +223,11 @@ public class LessonTest extends Activity implements OnClickListener {
 		
 		// Query NTB API to get the ids for the sounds associated with the current lesson
 		getLessonData();
+		
+		// Create two separate sound arrays for practice and test mode
+		practiceSounds = new int[lessonSpecies.length()];
+		testSounds = new int[sounds.length()-lessonSpecies.length()];
+		createSoundIdArrays();
 		
 		// Query NTB API to get the xcId, speciesId, and fs of the current sound
 		currSnd = 0;
@@ -272,100 +297,16 @@ public class LessonTest extends Activity implements OnClickListener {
 	
 	// next
 	public void onClickNext(View v) {
-		if (currSnd < sounds.length() - 1) {
-			
-			// Increment sound counter
-			currSnd ++;
-			
-			// Reset the button counter
-			numButts = 0;
-			
-			// Get the sound data for the next sound
-			getSoundData();
-			
-			// Download the waveform file for the next sound
-			float[] normalized = getWaveformFile();
-			
-			// Get the truth data for the next sound
-			getTruthData();
-			
-			// Reset the onset counter
-			currOnset = 0;
-			
-			// Get the first onset
-			float[] onset = getOnset(normalized);
-			
-			// Set up the waveform drawing surface for the next sound and add it to the current view
-			drawWaveform(onset);
-			
-			player.reset();
-			
-			try {
-				player.setDataSource(baseUrlXc + xcId + downloadUrlXc);
-				player.prepareAsync();
-			} catch (IllegalArgumentException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			} catch (SecurityException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			} catch (IllegalStateException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			} catch (IOException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
-			
+//		if (currSnd < sounds.length() - 1) {
+		if (currSnd < testSounds.length - 1) {
+			getNextSound();
 		}
 	}
 	
 	// next
 	public void onClickPrev(View v) {
 		if (currSnd > 0) {
-			
-			// Decrement sound counter
-			currSnd --;
-			
-			// Reset the onset counter
-			currOnset = 0;
-			
-			// Reset the button counter
-			numButts = 0;
-			
-			// Get the sound data for the previous sound
-			getSoundData();
-			
-			// Download the waveform file for the next sound
-			float[] normalized = getWaveformFile();
-			
-			// Get the truth data for the previous sound
-			getTruthData();
-			
-			// Get the first onset
-			float[] onset = getOnset(normalized);
-			
-			// Set up the waveform drawing surface for the next sound and add it to the current view
-			drawWaveform(onset);
-			
-			player.reset();
-			
-			try {
-				player.setDataSource(baseUrlXc + xcId + downloadUrlXc);
-				player.prepareAsync();
-			} catch (IllegalArgumentException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			} catch (SecurityException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			} catch (IllegalStateException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			} catch (IOException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
+			getPrevSound();
 			
 		}
 	}
@@ -413,6 +354,120 @@ public class LessonTest extends Activity implements OnClickListener {
 		player.seekTo((int)playerStartMs);
 	}
 	
+	// Gets the next sound
+	public void getNextSound() {
+		
+		// Increment sound counter
+		currSnd ++;
+		
+		// If currently in practice mode...
+		if (practiceBool) {
+
+			// ...and we have exceeded the num of recordings for practice mode
+			if (currSnd > 3) {
+				
+				// Set the practiceBool to false (to say that we're in test mode)
+				practiceBool = false;
+				
+				// Set the text view to say that we're in Test
+				tvMode.setText("TEST MODE");
+				
+				// Reset the current snd to 0 so that we index the testSounds array properly
+				currSnd = 0;
+				
+			}
+		}
+		
+		Log.i("currSnd", String.valueOf(currSnd));
+		
+		// Reset the button counter
+		numButts = 0;
+		
+		// Get the sound data for the next sound
+		getSoundData();
+		
+		// Download the waveform file for the next sound
+		float[] normalized = getWaveformFile();
+		
+		// Get the truth data for the next sound
+		getTruthData();
+		
+		// Reset the onset counter
+		currOnset = 0;
+		
+		// Get the first onset
+		float[] onset = getOnset(normalized);
+		
+		// Set up the waveform drawing surface for the next sound and add it to the current view
+		drawWaveform(onset);
+		
+		player.reset();
+		
+		try {
+			player.setDataSource(baseUrlXc + xcId + downloadUrlXc);
+			player.prepareAsync();
+		} catch (IllegalArgumentException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (SecurityException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (IllegalStateException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
+	}
+	
+	// Gets the previous sound
+	public void getPrevSound() {
+		// Decrement sound counter
+		currSnd --;
+		
+		// Reset the onset counter
+		currOnset = 0;
+		
+		// Reset the button counter
+		numButts = 0;
+		
+		// Get the sound data for the previous sound
+		getSoundData();
+		
+		// Download the waveform file for the next sound
+		float[] normalized = getWaveformFile();
+		
+		// Get the truth data for the previous sound
+		getTruthData();
+		
+		// Get the first onset
+		float[] onset = getOnset(normalized);
+		
+		// Set up the waveform drawing surface for the next sound and add it to the current view
+		drawWaveform(onset);
+		
+		player.reset();
+		
+		try {
+			player.setDataSource(baseUrlXc + xcId + downloadUrlXc);
+			player.prepareAsync();
+		} catch (IllegalArgumentException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (SecurityException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (IllegalStateException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	}
+	
 	// BUTTON HANDLERS
 	@Override
 	public void onClick(View arg0) {
@@ -450,13 +505,28 @@ public class LessonTest extends Activity implements OnClickListener {
 		
 		// Form the query url
 //		int currSndId;
-		try {
-			currSndId = sounds.getInt(currSnd);
-		} catch (JSONException e1) {
-			// TODO Auto-generated catch block
-			currSndId = 0;
-			e1.printStackTrace();
+//		try {
+//			currSndId = sounds.getInt(currSnd);
+//		} catch (JSONException e1) {
+//			// TODO Auto-generated catch block
+//			currSndId = 0;
+//			e1.printStackTrace();
+//		}
+		
+		if (practiceBool) {
+			currSndId = practiceSounds[currSnd];
+			
+			tvRec.setText("Recording # " + currSnd+1 + "/4");
+			
+			
+			
+		} else {
+			currSndId = testSounds[currSnd];
+			
+			tvRec.setText("Recording # " + currSnd+1 + "/16");
+			
 		}
+		
 		queryUrl = soundUrl + currSndId;
 		
 		// HttpRequest to get sound data from NTB API
@@ -636,10 +706,60 @@ public class LessonTest extends Activity implements OnClickListener {
 			e.printStackTrace();
 		}
 		
+		// If there are no onsets calculated for this sound, skip it for now
+		if (onsetLocs.length == 0) {
+			getNextSound();
+		}
+		
+	}
+	
+	// Create separate arrays for practice and test modes
+	public void createSoundIdArrays() {
+		
+		// Make the practice sounds array 
+		int temp = 0;
+		
+		for (int i = 0; i < practiceSounds.length; i++) {
+			
+			try {
+				practiceSounds[i] = sounds.getInt(temp);
+				Log.i("practiceSounds[" + String.valueOf(i) + "]", String.valueOf(practiceSounds[i]));
+			} catch (JSONException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+			
+			temp += 5;
+			
+		}
+		
+		// Make the test sounds array
+		temp = 0;
+		
+		for (int i = 0; i < sounds.length(); i++) {
+		
+			if (i % 5 != 0) {
+			
+				try {
+					testSounds[temp] = sounds.getInt(i);
+					Log.i("testSounds[" + String.valueOf(temp) + "]", String.valueOf(testSounds[temp]));
+				} catch (JSONException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+				
+				temp ++;
+				
+			}
+			
+		}
+		
 	}
 	
 	// Get onset
 	public float[] getOnset(float[] normalized) {
+		
+		tvOnset.setText("Onset " + currOnset+1 + "/" + onsetLocs.length);
 		
 		// Num of secs that each pixel-sample represents
 		secsPerPx = (float)numWaveformSamps/(float)fs;

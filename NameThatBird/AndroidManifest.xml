@@ -72,6 +72,7 @@
         <activity
             android:name="com.alexmarse.namethatbird.LessonTest"
             android:label="@string/title_activity_lesson_test"
+            android:screenOrientation="portrait"
             android:parentActivityName="com.alexmarse.namethatbird.NTBSelectLesson" >
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
