@@ -703,6 +703,10 @@ public class LessonTest extends Activity implements OnClickListener {
 			e.printStackTrace();
 		}
 		
+		if (practiceBool) {
+			tvOnset.setText(engName);
+		}
+		
 	}
 	
 	// Decodes JSON String
@@ -777,7 +781,9 @@ public class LessonTest extends Activity implements OnClickListener {
 	// Get onset
 	public float[] getOnset(float[] normalized) {
 		
-		tvOnset.setText("Onset " + currOnset+1 + "/" + onsetLocs.length);
+		if (!practiceBool) {
+			tvOnset.setText("Onset " + currOnset+1 + "/" + onsetLocs.length);
+		}
 		
 		// Num of secs that each pixel-sample represents
 		secsPerPx = (float)numWaveformSamps/(float)fs;
