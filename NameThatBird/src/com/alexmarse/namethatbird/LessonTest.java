@@ -522,17 +522,16 @@ public class LessonTest extends Activity implements OnClickListener {
 //			e1.printStackTrace();
 //		}
 		
+		int temp = currSnd + 1;
 		if (practiceBool) {
 			currSndId = practiceSounds[currSnd];
 			
-			tvRec.setText("Recording # " + currSnd+1 + "/4");
-			
-			
+			tvRec.setText("Recording # " + temp + "/4");
 			
 		} else {
 			currSndId = testSounds[currSnd];
-			
-			tvRec.setText("Recording # " + currSnd+1 + "/16");
+		
+			tvRec.setText("Recording # " + temp + "/16");
 			
 		}
 		
@@ -776,13 +775,25 @@ public class LessonTest extends Activity implements OnClickListener {
 			
 		}
 		
+		temp = 0;
+		// Randomize the test sounds array
+		for (int i = 0; i < testSounds.length; i++) {
+			
+			int randy = i + (int) (Math.random() * (testSounds.length-i));
+	        temp = testSounds[i];
+	        testSounds[i] = testSounds[randy];
+	        testSounds[randy] = temp;
+			
+		}
+		
 	}
 	
 	// Get onset
 	public float[] getOnset(float[] normalized) {
 		
 		if (!practiceBool) {
-			tvOnset.setText("Onset " + currOnset+1 + "/" + onsetLocs.length);
+			int temp = currOnset+1;
+			tvOnset.setText("Onset " + temp + "/" + onsetLocs.length);
 		}
 		
 		// Num of secs that each pixel-sample represents
