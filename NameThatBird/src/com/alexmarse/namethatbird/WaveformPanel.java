@@ -111,7 +111,7 @@ public class WaveformPanel extends SurfaceView implements
 		xPad = 10;
 		yPad = 80;
 
-		setWaveformHeight((int)(viewHeight / 2.5 - yPad)); // For now, make it take up half
+		setWaveformHeight((int)(viewHeight / 3 - yPad)); // For now, make it take up half
 												// the height of the view minus
 												// some padding
 //		setWaveformHeight(viewHeight / 4 - yPad);

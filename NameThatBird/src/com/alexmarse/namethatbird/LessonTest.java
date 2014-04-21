@@ -225,8 +225,9 @@ public class LessonTest extends Activity implements OnClickListener {
 		getLessonData();
 		
 		// Create two separate sound arrays for practice and test mode
-		practiceSounds = new int[lessonSpecies.length()];
-		testSounds = new int[sounds.length()-lessonSpecies.length()];
+		Log.i("lessonSpecies.length", String.valueOf(lessonSpecies.length()));
+		practiceSounds = new int[lessonSpecies.length() - 2];
+		testSounds = new int[sounds.length()-practiceSounds.length];
 		createSoundIdArrays();
 		
 		// Query NTB API to get the xcId, speciesId, and fs of the current sound
@@ -316,24 +317,32 @@ public class LessonTest extends Activity implements OnClickListener {
 //		Log.e("play", "play please");
 		if (player != null) {
 			if (!(player.isPlaying())) {
-				player.seekTo((int)playerStartMs);
-				player.start();
 				
-				CountDownTimer timer = new CountDownTimer((long) (playerEndMs-playerStartMs), 10) {
-
-				    @Override
-				    public void onTick(long millisUntilFinished) {
-				       // Nothing to do
-				    }
-
-				    @Override
-				    public void onFinish() {
-				        if (player.isPlaying()) {
-				             player.pause();
-				        }
-				    }
-				};
-				timer.start(); 
+				// If in Practice mode, just play the whole sound
+				if (practiceBool) {
+					player.start();
+				} else {
+				
+					// Otherwise, only play the current onset
+					player.seekTo((int)playerStartMs);
+					player.start();
+				
+					CountDownTimer timer = new CountDownTimer((long) (playerEndMs-playerStartMs), 10) {
+		
+					    @Override
+					    public void onTick(long millisUntilFinished) {
+					       // Nothing to do
+					    }
+		
+					    @Override
+					    public void onFinish() {
+					        if (player.isPlaying()) {
+					             player.pause();
+					        }
+					    }
+					};
+					timer.start(); 
+				}
 				
 			}
 		}
@@ -551,7 +560,12 @@ public class LessonTest extends Activity implements OnClickListener {
 	// Query NTB API to get the eng_name of the current sound's species
 	public void getLessonSpeciesData() {
 		
+		// Put the None and Other into the lessonSpecies array
+		lessonSpecies.put(9);
+		lessonSpecies.put(10);
+		
 		engNames = new String[lessonSpecies.length()];
+		Log.i("engNames.length", String.valueOf(engNames.length));
 		
 		// Loop through the current lesson's species array
 		for (int i = 0; i < lessonSpecies.length(); i++) {
@@ -586,6 +600,10 @@ public class LessonTest extends Activity implements OnClickListener {
 			}
 			
 		}
+		
+		// Add "None" and "Other" to the list of eng_names
+//		engNames[engNames.length-2] = "None";
+//		engNames[engNames.length-1] = "Other";
 		
 		// Set up the species name grid view
 		setupSpeciesGrid();
@@ -793,8 +811,11 @@ public class LessonTest extends Activity implements OnClickListener {
 		}
 		
 		// Set the player start and end position
-		playerStartMs = startSamp*secsPerPx*1000;
-		playerEndMs = endSamp*secsPerPx*1000;
+		playerStartMs = startSamp*secsPerPx*1000 - 500;
+		if (playerStartMs < 0) {
+			playerStartMs = 0;
+		}
+		playerEndMs = endSamp*secsPerPx*1000 + 500;
 		
 		// Now, take only the portion of the normalized array that we want
 		float[] onset = new float[numOffsetSamps*2+1];
